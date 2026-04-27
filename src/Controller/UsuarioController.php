@@ -12,6 +12,27 @@ use Symfony\Component\HttpFoundation\Request;
 #[Route('/usuario', name: 'app_usuario')]
 final class UsuarioController extends AbstractController
 {
+
+    //GET 127.0.0.1:8000/usuario
+    #[Route('/', name: 'app_usuario_list', methods: ['GET'])]
+    public function list(EntityManagerInterface $eni): Response
+    {
+        $usuarios = $eni->getRepository(Usuario::class)->findAll();
+        if (empty($usuarios)) {
+            return $this->json("No hay usuarios", 404);
+        }
+        $actoresJson = array();
+        foreach ($usuarios as $usuario) {
+            $actoresJson[] = [
+                "id" => $usuario->getId(),
+                "correo" => $usuario->getCorreo(),
+                "nombre" => $usuario->getNombre(),
+                "tipo" => $usuario->getTipo()
+            ];
+        }
+        return $this->json($actoresJson, 200);
+    }
+
     //Crear usuario
     //POST 127.0.0.1:8000/usuario/
     #[Route('/', name: 'app_usuario_crear', methods: ['POST'])]
@@ -44,7 +65,7 @@ final class UsuarioController extends AbstractController
         return $this->json("Usuario creado", 201);
     }
 
-    
+
     //Borrar usuario por id
     //POST 127.0.0.1:8000/usuario/id
     #[Route('/{id}', name: 'app_usuario_borrar', methods: ['POST'])]
@@ -84,5 +105,4 @@ final class UsuarioController extends AbstractController
         }
         return $this->json($usuariosJson, 200);
     }
-
 }

@@ -51,6 +51,32 @@ final class ActorController extends AbstractController
         return $this->json($actoresJson, 200);
     }
 
+    //Crear actor
+    //POST 127.0.0.1:8000/actor/
+    #[Route('/', name: 'app_actor_crear', methods: ['POST'])]
+    public function crear(request $request, EntityManagerInterface $eni): Response
+    {
+        $body = $request->getContent();
+        $data = json_decode($body, true);
+
+        if (!$data) {
+            return $this->json("Error JSON no valido", 404);
+        }
+        if (!isset($data["nombre"])) {
+            return $this->json("No hay nombre", 400);
+        }
+        $actor = new Actor();
+        $actor->setNombre($data["nombre"]);
+    
+        if (isset($data["nacimiento"])) {
+            $actor->setNacimiento($data["nacimiento"]);
+        }
+        $eni->persist($actor);
+        $eni->flush();
+
+        return $this->json("Actor creado", 201);
+    }
+
     //Borrar actor por id
     //POST 127.0.0.1:8000/actor/id
     #[Route('/{id}', name: 'app_actor_borrar', methods: ['POST'])]
