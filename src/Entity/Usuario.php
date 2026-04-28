@@ -20,7 +20,7 @@ class Usuario
     #[ORM\Column(length: 30)]
     private ?string $nombre = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 100)]
     private ?string $contrasena = null;
 
     #[ORM\Column]

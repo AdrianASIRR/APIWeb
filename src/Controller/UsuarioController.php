@@ -53,6 +53,9 @@ final class UsuarioController extends AbstractController
         if (!isset($data["contrasena"])) {
             return $this->json("No hay contrasena", 400);
         }
+        if (!isset($data["tipo"])) {
+            $data["tipo"] = 1;
+        }
         $usuario = new usuario();
         $usuario->setNombre($data["nombre"]);
         $usuario->setCorreo($data["correo"]);
@@ -83,10 +86,31 @@ final class UsuarioController extends AbstractController
         return $this->json("Usuario borrado", 200);
     }
 
-    //Buscar usuario
+    //Buscar usuario por id
+    //GET 127.0.0.1:8000/usuario/2
+    #[Route('/{id}', name: 'app_usuario_id', methods: ['GET'])]
+    public function usuarioId(int $id, EntityManagerInterface $eni): Response
+    {
+        $usuarios = $eni->getRepository(Usuario::class)->find($id);
+
+        if (empty($usuarios)) {
+            return $this->json("No hay usuarios", 404);
+        }
+        //Devolverá  un solo elemento
+        $usuariosJson[] = [
+            "id" => $usuarios->getId(),
+            "correo" => $usuarios->getCorreo(),
+            "nombre" => $usuarios->getNombre(),
+            "tipo" => $usuarios->getTipo()
+        ];
+
+        return $this->json($usuariosJson, 200);
+    }
+
+    //Buscar usuario por nombre
     //GET 127.0.0.1:8000/usuario/Paco
     #[Route('/nombre/{nombre}', name: 'app_usuario_nombre', methods: ['GET'])]
-    public function usuarioNombre(int $nombre, EntityManagerInterface $eni): Response
+    public function usuarioNombre(string $nombre, EntityManagerInterface $eni): Response
     {
         $usuarios = $eni->getRepository(Usuario::class)->findBy(['nombre' => $nombre]);
 
@@ -104,5 +128,61 @@ final class UsuarioController extends AbstractController
             ];
         }
         return $this->json($usuariosJson, 200);
+    }
+
+
+    //Login usuario
+    //GET 127.0.0.1:8000/usuario/login/Paco/1234
+    #[Route('/login/{nombre}/{contrasena}', name: 'app_usuario_login', methods: ['GET'])]
+    public function loginUsuario(string $nombre, string $contrasena, EntityManagerInterface $eni): Response
+    {
+        $usuarios = $eni->getRepository(Usuario::class)->findBy(['nombre' => $nombre]);
+        $valid = false;
+
+        if (empty($usuarios)) {
+            return $this->json("No hay usuarios con ese nombre", 404);
+        }
+        $idUsuario=null;
+        foreach ($usuarios as $usuario) {
+            $hash = $usuario->getContrasena();
+            $idUsuario= $usuario->getId();
+
+            if (password_verify($contrasena, $hash)) {
+                $valid=true;
+            }
+        }
+
+        if ($valid == true) {
+            return $this->json($idUsuario, 200);
+        } else {
+            return $this->json("Error en el login", 404);
+        }
+    }
+
+    //Modificar usuario
+    //PUT 127.0.0.1:8000/usuario/1
+    #[Route('/{id}', name: 'app_usuario_modificar', methods: ['PUT'])]
+    public function modificar(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $usuario = $eni->getRepository(Usuario::class)->find($id);
+
+        if (empty($usuario)) {
+            return $this->json("No existe este usuario", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (isset($data["contrasena"])) {
+            $usuario->setContrasena(password_hash($data["contrasena"], PASSWORD_DEFAULT));
+        }
+        if (isset($data["tipo"])) {
+            $usuario->setTipo($data["tipo"]);
+        }
+
+        $eni->persist($usuario);
+        $eni->flush();
+
+        return $this->json("Usuario modificado", 200);
     }
 }
