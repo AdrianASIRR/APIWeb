@@ -8,24 +8,35 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ActorPeliculaRepository::class)]
 class ActorPelicula
 {
-    #[ORM\Id]
+    /* #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null; */
 
+    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'actorPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Actor $actor = null;
 
+    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'actorPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Pelicula $pelicula = null;
 
-    public function getId(): ?int
+    /*  public function getId(): ?int
     {
         return $this->id;
     }
-
+ */
+    public function getCompoundId(): string
+    {
+        return sprintf(
+            '%d_%d',
+            $this->actor->getId(),
+            $this->pelicula->getId()
+        );
+    }
+    
     public function getActor(): ?Actor
     {
         return $this->actor;

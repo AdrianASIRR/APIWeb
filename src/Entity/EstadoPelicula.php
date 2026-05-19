@@ -9,19 +9,22 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EstadoPeliculaRepository::class)]
 class EstadoPelicula
 {
-    #[ORM\Id]
+    /* #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null; */
 
+    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'estadoPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Pelicula $pelicula = null;
 
+    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'estadoPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Usuario $usuario = null;
 
+    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'estadoPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Estado $estado = null;
@@ -32,11 +35,21 @@ class EstadoPelicula
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comentario = null;
 
-    public function getId(): ?int
+    /*  public function getId(): ?int
     {
         return $this->id;
     }
+    */
 
+     public function getCompoundId(): string
+    {
+        return sprintf(
+            '%d_%d_%d',
+            $this->pelicula->getId(),
+            $this->usuario->getId(),
+            $this->estado->getId()
+        );
+    }
     public function getPelicula(): ?Pelicula
     {
         return $this->pelicula;
