@@ -2,17 +2,156 @@
 
 namespace App\Controller;
 
+use App\Entity\DirectorPelicula;
+use App\Repository\DirectorPeliculaRepository;
+use App\Repository\DirectorRepository;
+use App\Repository\PeliculaRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Request;
 
+
+#[Route('/director-pelicula', name: 'app_director_pelicula')]
 final class DirectorPeliculaController extends AbstractController
 {
-    #[Route('/director/pelicula', name: 'app_director_pelicula')]
-    public function index(): Response
-    {
-        return $this->render('director_pelicula/index.html.twig', [
-            'controller_name' => 'DirectorPeliculaController',
+
+    //Crear director pelicula
+    //POST 127.0.0.1:8000/director-pelicula/
+    #[Route('/', name: 'app_director_pelicula_crear', methods: ['POST'])]
+    public function crear(
+        Request $request,
+        EntityManagerInterface $emi,
+        PeliculaRepository $peliculaRepository,
+        DirectorRepository $directorRepository,
+    ): Response {
+        // 1. Decodificar los datos JSON recibidos
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data || !isset($data['pelicula'], $data['director'])) {
+            return $this->json('Faltan parámetros obligatorios.', 400);
+        }
+
+        // 2. Buscar las entidades relacionadas
+        $pelicula = $peliculaRepository->find($data['pelicula']);
+        $director = $directorRepository->find($data['director']);
+
+        // Evitamos que Doctrine pete si los IDs no corresponden a ningún registro real
+        if (!$pelicula) {
+            return $this->json('La película especificada no existe.', 404);
+        }
+        if (!$director) {
+            return $this->json('El director especificado no existe.', 404);
+        }
+        // 3. Opcional: Verificar si ya existe este estado para evitar duplicar la clave compuesta
+        $existe = $emi->getRepository(DirectorPelicula::class)->find([
+            'pelicula' => $pelicula,
+            'director' => $director
         ]);
+
+        if ($existe) {
+            return $this->json('El estado de la película ya existe para este usuario.', 409);
+        }
+
+        // 4. Crear y configurar la nueva entidad DirectorPelicula
+        $directorPelicula = new DirectorPelicula();
+        $directorPelicula->setPelicula($pelicula);
+        $directorPelicula->setDirector($director);
+
+
+        $emi->persist($directorPelicula);
+        $emi->flush();
+
+        return $this->json("Director de pelicula creado", 201);
+    }
+
+    //  Buscar por id compuesta
+    //  GET 127.0.0.1:8000/director-pelicula/concreta/4/12 (Pelicula 4, Usuario 12)
+    #[Route('/concreta/{peliculaId}/{directorId}', name: 'app_director_pelicula_concreta', methods: ['GET'])]
+    public function getEstadoPelicula(int $peliculaId, int $directorId, DirectorPeliculaRepository $repository): Response
+    {
+        // Buscamos empleando la clave compuesta como un array asociativo
+        $directorPelicula = $repository->find(['pelicula' => $peliculaId, 'director' => $directorId]);
+
+        // Verificamos si existe y si no está marcado como borrado lógico
+        if (!$directorPelicula) {
+            return $this->json("No hay directorPelicula", 404);
+        }
+        //Devolverá  un solo elemento
+        $directorPeliculaJson = [
+            "id_compuesto" => $directorPelicula->getCompoundId(),
+            "pelicula" => [
+                'id' => $directorPelicula->getPelicula()->getId(),
+                'titulo' => $directorPelicula->getPelicula()->getTitulo()
+            ],
+            "director" => [
+                'id' => $directorPelicula->getDirector()->getId(),
+                'nombre' => $directorPelicula->getDirector()->getNombre()
+            ]
+        ];
+
+        return $this->json($directorPeliculaJson, 200);
+    }
+
+    //  Buscar por id director
+    //  GET 127.0.0.1:8000/director-pelicula/director/5 
+    #[Route('/director/{directorId}', name: 'app_director_pelicula_director', methods: ['GET'])]
+    public function getEstadosDirector(int $directorId, DirectorPeliculaRepository $repository): Response
+    {
+        // Buscamos empleando la clave compuesta como un array asociativo
+        $directorPeliculas = $repository->findBy(['director' => $directorId]);
+
+        // Verificamos si existe y si no está marcado como borrado lógico
+        if (!$directorPeliculas) {
+            return $this->json("No hay directorPelicula", 404);
+        }
+        $directorPeliculasJson = array();
+        foreach ($directorPeliculas as $directorPelicula) {
+            $directorPeliculasJson[] = [
+                "id_compuesto" => $directorPelicula->getCompoundId(),
+                "pelicula" => [
+                    'id' => $directorPelicula->getPelicula()->getId(),
+                    'titulo' => $directorPelicula->getPelicula()->getTitulo()
+                ],
+                "director" => [
+                    'id' => $directorPelicula->getDirector()->getId(),
+                    'nombre' => $directorPelicula->getDirector()->getNombre()
+                ]
+            ];
+        }
+
+        return $this->json($directorPeliculasJson, 200);
+    }
+
+    //  Buscar por id pelicula 
+    //  GET 127.0.0.1:8000/director-pelicula/pelicula/5
+    #[Route('/pelicula/{peliculaId}', name: 'app_director_pelicula_peli', methods: ['GET'])]
+    public function getEstadosPelicula(int $peliculaId, DirectorPeliculaRepository $repository): Response
+    {
+        // Buscamos empleando la clave compuesta como un array asociativo
+        $directorPeliculas = $repository->findBy(['pelicula' => $peliculaId]);
+
+        // Verificamos si existe y si no está marcado como borrado lógico
+        if (!$directorPeliculas) {
+            return $this->json("No hay directorPelicula", 404);
+        }
+
+        $directorPeliculasJson = array();
+        foreach ($directorPeliculas as $directorPelicula) {
+            $directorPeliculasJson[] = [
+                "id_compuesto" => $directorPelicula->getCompoundId(),
+                "pelicula" => [
+                    'id' => $directorPelicula->getPelicula()->getId(),
+                    'titulo' => $directorPelicula->getPelicula()->getTitulo()
+                ],
+                "director" => [
+                    'id' => $directorPelicula->getDirector()->getId(),
+                    'nombre' => $directorPelicula->getDirector()->getNombre()
+                ]
+            ];
+        }
+
+        return $this->json($directorPeliculasJson, 200);
     }
 }
