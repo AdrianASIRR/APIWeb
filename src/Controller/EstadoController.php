@@ -42,7 +42,7 @@ final class EstadoController extends AbstractController
             return $this->json("No hay estados", 404);
         }
         //Devolverá  un solo elemento
-        $estadosJson[] = [
+        $estadosJson = [
             "id" => $estados->getId(),
             "nombre" => $estados->getNombre()
         ];
@@ -51,7 +51,7 @@ final class EstadoController extends AbstractController
     }
 
     //Borrar estado por id
-    //POST 127.0.0.1:8000/estado/id
+    //POST 127.0.0.1:8000/estado/4
     #[Route('/{id}', name: 'app_estado_borrar', methods: ['POST'])]
     public function borrar(int $id, EntityManagerInterface $eni): Response
     {
@@ -69,7 +69,7 @@ final class EstadoController extends AbstractController
 
 
     //modificar estado
-    //PUT 127.0.0.1:8000/estado
+    //PUT 127.0.0.1:8000/estado/4
     #[Route('/{id}', name: 'app_estado_modificar', methods: ['PUT'])]
     public function modificar(int $id, EntityManagerInterface $eni, Request $request): Response
     {
@@ -90,5 +90,27 @@ final class EstadoController extends AbstractController
         $eni->flush();
 
         return $this->json("estado modificado", 200);
+    }
+
+    //Borrado lógico estado
+    //PUT 127.0.0.1:8000/estado/blogico/4
+    #[Route('/blogico/{id}', name: 'app_estado_borrado_logico', methods: ['PUT'])]
+    public function borradoLogico(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $estado = $eni->getRepository(Estado::class)->find($id);
+
+        if (empty($estado)) {
+            return $this->json("No existe este estado", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $estado->setBorrado(1);
+
+        $eni->persist($estado);
+        $eni->flush();
+
+        return $this->json("Estado borrado lógicamente", 200);
     }
 }

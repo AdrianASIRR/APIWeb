@@ -15,7 +15,7 @@ class Estado
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(length: 30, unique: true)]
     private ?string $nombre = null;
 
     /**
@@ -24,8 +24,8 @@ class Estado
     #[ORM\OneToMany(targetEntity: EstadoPelicula::class, mappedBy: 'estado')]
     private Collection $estadoPeliculas;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     public function __construct()
     {

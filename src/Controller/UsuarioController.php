@@ -21,16 +21,16 @@ final class UsuarioController extends AbstractController
         if (empty($usuarios)) {
             return $this->json("No hay usuarios", 404);
         }
-        $actoresJson = array();
+        $usuariosJson = array();
         foreach ($usuarios as $usuario) {
-            $actoresJson[] = [
+            $usuariosJson[] = [
                 "id" => $usuario->getId(),
                 "correo" => $usuario->getCorreo(),
                 "nombre" => $usuario->getNombre(),
                 "tipo" => $usuario->getTipo()
             ];
         }
-        return $this->json($actoresJson, 200);
+        return $this->json($usuariosJson, 200);
     }
 
     //Crear usuario
@@ -55,12 +55,15 @@ final class UsuarioController extends AbstractController
         }
         if (!isset($data["tipo"])) {
             $data["tipo"] = 1;
+        } else {
         }
         $usuario = new usuario();
         $usuario->setNombre($data["nombre"]);
         $usuario->setCorreo($data["correo"]);
         $usuario->setContrasena(password_hash($data["contrasena"], PASSWORD_DEFAULT));
-        $usuario->setTipo($data["tipo"]);
+        if (isset($data["tipo"])) {
+            $usuario->setTipo($data["tipo"]);
+        }
 
         $eni->persist($usuario);
         $eni->flush();
@@ -97,7 +100,7 @@ final class UsuarioController extends AbstractController
             return $this->json("No hay usuarios", 404);
         }
         //Devolverá  un solo elemento
-        $usuariosJson[] = [
+        $usuariosJson = [
             "id" => $usuarios->getId(),
             "correo" => $usuarios->getCorreo(),
             "nombre" => $usuarios->getNombre(),
@@ -142,18 +145,24 @@ final class UsuarioController extends AbstractController
         if (empty($usuarios)) {
             return $this->json("No hay usuarios con ese nombre", 404);
         }
-        $idUsuario=null;
+        $idUsuario = null;
+        $tipoUsuario = null;
         foreach ($usuarios as $usuario) {
             $hash = $usuario->getContrasena();
-            $idUsuario= $usuario->getId();
+            $idUsuario = $usuario->getId();
+            $tipoUsuario = $usuario->getTipo();
 
             if (password_verify($contrasena, $hash)) {
-                $valid=true;
+                $valid = true;
             }
         }
 
         if ($valid == true) {
-            return $this->json($idUsuario, 200);
+            // Devolvemos tanto el ID como el tipo de rol (asumiendo que tienes un método getTipo())
+            return $this->json([
+                'id' => $idUsuario,
+                'tipo' => $tipoUsuario // 1 = Normal, 2 = Admin
+            ], 200);
         } else {
             return $this->json("Error en el login", 404);
         }
@@ -184,5 +193,27 @@ final class UsuarioController extends AbstractController
         $eni->flush();
 
         return $this->json("Usuario modificado", 200);
+    }
+
+    //Borrado lógico usuario
+    //PUT 127.0.0.1:8000/usuario/blogico/4
+    #[Route('/blogico/{id}', name: 'app_usuario_borrado_logico', methods: ['PUT'])]
+    public function borradoLogico(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $usuario = $eni->getRepository(Usuario::class)->find($id);
+
+        if (empty($usuario)) {
+            return $this->json("No existe este usuario", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $usuario->setBorrado(1);
+
+        $eni->persist($usuario);
+        $eni->flush();
+
+        return $this->json("Usuario borrado lógicamente", 200);
     }
 }

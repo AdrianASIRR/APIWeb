@@ -15,7 +15,7 @@ class Genero
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, unique: true)]
     private ?string $nombre = null;
 
     /**
@@ -24,8 +24,8 @@ class Genero
     #[ORM\OneToMany(targetEntity: GeneroPelicula::class, mappedBy: 'genero')]
     private Collection $generoPeliculas;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     public function __construct()
     {

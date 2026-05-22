@@ -41,7 +41,7 @@ final class GeneroController extends AbstractController
             return $this->json("No hay generos", 404);
         }
         //Devolverá  un solo elemento
-        $generosJson[] = [
+        $generosJson = [
             "id" => $generos->getId(),
             "nombre" => $generos->getNombre()
         ];
@@ -88,7 +88,29 @@ final class GeneroController extends AbstractController
         $eni->persist($genero);
         $eni->flush();
 
-        return $this->json("estado modificado", 200);
+        return $this->json("genero modificado", 200);
+    }
+
+    //Borrado lógico genero
+    //PUT 127.0.0.1:8000/genero/blogico/4
+    #[Route('/blogico/{id}', name: 'app_genero_borrado_logico', methods: ['PUT'])]
+    public function borradoLogico(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $genero = $eni->getRepository(Genero::class)->find($id);
+
+        if (empty($genero)) {
+            return $this->json("No existe este genero", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $genero->setBorrado(1);
+
+        $eni->persist($genero);
+        $eni->flush();
+
+        return $this->json("Genero borrado lógicamente", 200);
     }
    
 }

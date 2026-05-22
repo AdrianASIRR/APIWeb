@@ -25,7 +25,8 @@ final class ActorController extends AbstractController
             $actoresJson[] = [
                 "id" => $actor->getId(),
                 "nombre" => $actor->getNombre(),
-                "nacimiento" => $actor->getNacimiento()
+                "nacimiento" => $actor->getNacimiento(),
+                "borrado" => $actor->isBorrado(),
             ];
         }
         return $this->json($actoresJson, 200);
@@ -42,10 +43,11 @@ final class ActorController extends AbstractController
             return $this->json("No hay actores", 404);
         }
         //Devolverá  un solo elemento
-        $actoresJson[] = [
+        $actoresJson = [
             "id" => $actores->getId(),
             "nombre" => $actores->getNombre(),
-            "nacimiento" => $actores->getNacimiento()
+            "nacimiento" => $actores->getNacimiento(),
+            "borrado" => $actores->isBorrado()
         ];
 
         return $this->json($actoresJson, 200);
@@ -67,7 +69,7 @@ final class ActorController extends AbstractController
         }
         $actor = new Actor();
         $actor->setNombre($data["nombre"]);
-    
+
         if (isset($data["nacimiento"])) {
             $actor->setNacimiento($data["nacimiento"]);
         }
@@ -78,7 +80,7 @@ final class ActorController extends AbstractController
     }
 
     //Borrar actor por id
-    //POST 127.0.0.1:8000/actor/id
+    //POST 127.0.0.1:8000/actor/21
     #[Route('/{id}', name: 'app_actor_borrar', methods: ['POST'])]
     public function borrar(int $id, EntityManagerInterface $eni): Response
     {
@@ -96,7 +98,7 @@ final class ActorController extends AbstractController
 
 
     //modificar actor
-    //PUT 127.0.0.1:8000/actor
+    //PUT 127.0.0.1:8000/actor/34
     #[Route('/{id}', name: 'app_actor_modificar', methods: ['PUT'])]
     public function modificar(int $id, EntityManagerInterface $eni, Request $request): Response
     {
@@ -121,5 +123,27 @@ final class ActorController extends AbstractController
         $eni->flush();
 
         return $this->json("Actor modificado", 200);
+    }
+
+    //Borrado lógico actor
+    //PUT 127.0.0.1:8000/actor/blogico/4
+    #[Route('/blogico/{id}', name: 'app_actor_borrado_logico', methods: ['PUT'])]
+    public function borradoLogico(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $actor = $eni->getRepository(Actor::class)->find($id);
+
+        if (empty($actor)) {
+            return $this->json("No existe este actor", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $actor->setBorrado(1);
+
+        $eni->persist($actor);
+        $eni->flush();
+
+        return $this->json("Actor borrado lógicamente", 200);
     }
 }

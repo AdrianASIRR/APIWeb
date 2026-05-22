@@ -24,30 +24,25 @@ class EstadoPelicula
     #[ORM\JoinColumn(nullable: false)]
     private ?Usuario $usuario = null;
 
-    #[ORM\Id]
     #[ORM\ManyToOne(inversedBy: 'estadoPeliculas')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Estado $estado = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $puntuacion = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comentario = null;
 
-    /*  public function getId(): ?int
-    {
-        return $this->id;
-    }
-    */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
      public function getCompoundId(): string
     {
         return sprintf(
-            '%d_%d_%d',
+            '%d_%d',
             $this->pelicula->getId(),
-            $this->usuario->getId(),
-            $this->estado->getId()
+            $this->usuario->getId()
         );
     }
     public function getPelicula(): ?Pelicula
@@ -106,6 +101,18 @@ class EstadoPelicula
     public function setComentario(?string $comentario): static
     {
         $this->comentario = $comentario;
+
+        return $this;
+    }
+
+    public function isBorrado(): ?bool
+    {
+        return $this->borrado;
+    }
+
+    public function setBorrado(bool $borrado): static
+    {
+        $this->borrado = $borrado;
 
         return $this;
     }

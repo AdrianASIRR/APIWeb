@@ -16,10 +16,10 @@ class Usuario
     private ?int $id = null;
 
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 100, unique: true)]
     private ?string $correo = null;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(length: 30, unique: true)]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 100)]
@@ -34,8 +34,8 @@ class Usuario
     #[ORM\OneToMany(targetEntity: EstadoPelicula::class, mappedBy: 'usuario')]
     private Collection $estadoPeliculas;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     public function __construct()
     {

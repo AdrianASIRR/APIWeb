@@ -28,8 +28,8 @@ class Actor
     #[ORM\OneToMany(targetEntity: ActorPelicula::class, mappedBy: 'actor')]
     private Collection $actorPeliculas;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     public function __construct()
     {

@@ -28,8 +28,8 @@ class Director
     #[ORM\OneToMany(targetEntity: DirectorPelicula::class, mappedBy: 'director')]
     private Collection $directorPeliculas;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     public function __construct()
     {

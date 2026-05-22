@@ -28,8 +28,8 @@ class Pelicula
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $fechaSalida = null;
 
-    #[ORM\Column]
-    private ?bool $borrado = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $borrado = false;
 
     /**
      * @var Collection<int, GeneroPelicula>
