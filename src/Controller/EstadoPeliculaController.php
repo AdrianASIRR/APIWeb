@@ -219,47 +219,39 @@ final class EstadoPeliculaController extends AbstractController
             $estadoId = $data['estado'];
 
             if ($estadoId === null) {
-                // Tu entidad tiene la columna como nullable=false #[ORM\JoinColumn(nullable: false)]
-                // así que NO podemos asignarle un null. Si se intenta, devolvemos un error.
                 return $this->json('El estado de la película no puede ser nulo.', 400);
             }
 
-            // Buscamos la entidad Estado real por su ID
+            // Buscamos la entidad Estado por su ID
             $nuevoEstado = $emi->getRepository(Estado::class)->find($estadoId);
 
             if (!$nuevoEstado) {
                 return $this->json('El estado especificado no existe.', 404);
             }
 
-            // Asignamos el objeto Estado completo a la relación
             $estadoPelicula->setEstado($nuevoEstado);
         }
 
         if (array_key_exists("puntuacion", $data)) {
-
             if ($data["puntuacion"] >= 0 && $data["puntuacion"] <= 10) {
                 $valor = $data["puntuacion"];
             } elseif ($data["puntuacion"] === null) {
                 $valor = null;
             }
-
             $estadoPelicula->setPuntuacion($valor);
         }
 
         if (array_key_exists("comentario", $data)) {
-
             if ($data["comentario"] === null) {
                 $valor = null;
             } else {
                 $valor = $data["comentario"];
             }
-
             $estadoPelicula->setComentario($valor);
         }
 
         $emi->persist($estadoPelicula);
         $emi->flush();
-
 
         return $this->json("EstadoPelicula modificado", 200);
     }

@@ -27,7 +27,8 @@ final class UsuarioController extends AbstractController
                 "id" => $usuario->getId(),
                 "correo" => $usuario->getCorreo(),
                 "nombre" => $usuario->getNombre(),
-                "tipo" => $usuario->getTipo()
+                "tipo" => $usuario->getTipo(),
+                "borrado" => $usuario->isBorrado()
             ];
         }
         return $this->json($usuariosJson, 200);
@@ -104,7 +105,8 @@ final class UsuarioController extends AbstractController
             "id" => $usuarios->getId(),
             "correo" => $usuarios->getCorreo(),
             "nombre" => $usuarios->getNombre(),
-            "tipo" => $usuarios->getTipo()
+            "tipo" => $usuarios->getTipo(),
+            "borrado" => $usuarios->isBorrado()
         ];
 
         return $this->json($usuariosJson, 200);
@@ -127,7 +129,8 @@ final class UsuarioController extends AbstractController
                 "correo" => $usuario->getCorreo(),
                 "nombre" => $usuario->getNombre(),
                 "contrasena" => $usuario->getContrasena(),
-                "tipo" => $usuario->getTipo()
+                "tipo" => $usuario->getTipo(),
+                "borrado" => $usuario->isBorrado()
             ];
         }
         return $this->json($usuariosJson, 200);
@@ -139,12 +142,13 @@ final class UsuarioController extends AbstractController
     #[Route('/login/{nombre}/{contrasena}', name: 'app_usuario_login', methods: ['GET'])]
     public function loginUsuario(string $nombre, string $contrasena, EntityManagerInterface $eni): Response
     {
-        $usuarios = $eni->getRepository(Usuario::class)->findBy(['nombre' => $nombre]);
+        $usuarios = $eni->getRepository(Usuario::class)->findBy(['nombre' => $nombre, 'borrado' => false]);
         $valid = false;
 
         if (empty($usuarios)) {
             return $this->json("No hay usuarios con ese nombre", 404);
         }
+
         $idUsuario = null;
         $tipoUsuario = null;
         foreach ($usuarios as $usuario) {
@@ -207,7 +211,7 @@ final class UsuarioController extends AbstractController
             return $this->json("No existe este usuario", 404);
         }
 
-        $data = json_decode($request->getContent(), true);
+        // $data = json_decode($request->getContent(), true);
 
         $usuario->setBorrado(1);
 
