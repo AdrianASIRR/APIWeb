@@ -255,6 +255,50 @@ final class EstadoPeliculaController extends AbstractController
 
         return $this->json("EstadoPelicula modificado", 200);
     }
+
+
+    // Obtener comentarios de una película
+    //  GET 127.0.0.1:8000/estado-pelicula/pelicula/5/comentarios
+    #[Route('/pelicula/{peliculaId}/comentarios', name: 'app_estado_pelicula_comentarios', methods: ['GET'])]
+    public function getComentarios(int $peliculaId, EstadoPeliculaRepository $repository): Response
+    {
+        // Buscamos estados de película de la película dada que no estén borrados y tengan comentario
+        $comentarios = $repository->createQueryBuilder('e')
+            ->where('e.pelicula = :pelicula')
+            ->andWhere('e.borrado = false')
+            ->andWhere('e.comentario IS NOT NULL')
+            ->setParameter('pelicula', $peliculaId)
+            ->getQuery()
+            ->getResult();
+
+        // Verificamos si existe y si no está marcado como borrado lógico
+        if (!$comentarios) {
+            return $this->json("No hay comentarios", 404);
+        }
+
+        $comentariosJson = array();
+        foreach ($comentarios as $comentario) {
+            $comentariosJson[] = [
+                // "id_compuesto" => $comentario->getCompoundId(),
+                // "pelicula_id" => [
+                //     'id' => $comentario->getPelicula()->getId(),
+                //     'titulo' => $comentario->getPelicula()->getTitulo()
+                // ],
+                "usuario" =>  $comentario->getUsuario()->getId(),
+                "nombre_usuario" => $comentario->getUsuario()->getNombre(),
+                // "estado" => [
+                //     'id' => $comentario->getEstado()->getId(),
+                //     'nombre' => $comentario->getEstado()->getNombre()
+                // ],
+                'puntuacion' => $comentario->getPuntuacion(),
+                'comentario' => $comentario->getComentario(),
+                // 'borrado' => $comentario->isBorrado()
+            ];
+        }
+
+        return $this->json($comentariosJson, 200);
+    }
+
     //GET 127.0.0.1:8000/estado/pelicula
     /*     #[Route('/', name: 'app_estado_pelicula_list', methods: ['GET'])]
     public function list(EntityManagerInterface $eni): Response

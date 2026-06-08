@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 
-#[Route('/genero/pelicula', name: 'app_genero_pelicula')]
+#[Route('/genero-pelicula', name: 'app_genero_pelicula')]
 final class GeneroPeliculaController extends AbstractController
 {
     //Crear genero pelicula
@@ -92,9 +92,9 @@ final class GeneroPeliculaController extends AbstractController
         return $this->json($generoPeliculaJson, 200);
     }
 
-    //  Buscar por id generor
-    //  GET 127.0.0.1:8000/generor-pelicula/director/5 
-    #[Route('/director/{directorId}', name: 'app_genero_pelicula_director', methods: ['GET'])]
+    //  Buscar por id genero
+    //  GET 127.0.0.1:8000/genero-pelicula/genero/5
+    #[Route('/genero/{generoId}', name: 'app_genero_pelicula_genero', methods: ['GET'])]
     public function getEstadosGenero(int $generoId, GeneroPeliculaRepository $repository): Response
     {
         // Buscamos empleando la clave compuesta como un array asociativo
@@ -104,18 +104,25 @@ final class GeneroPeliculaController extends AbstractController
         if (!$generoPeliculas) {
             return $this->json("No hay generoPelicula", 404);
         }
+
+        $baseUrl = 'http://127.0.0.1:8000/imagenes/pelicula/';
+
         $generoPeliculasJson = array();
         foreach ($generoPeliculas as $generoPelicula) {
+            $fotoUrl = $generoPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $generoPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
+
             $generoPeliculasJson[] = [
-                "id_compuesto" => $generoPelicula->getCompoundId(),
-                "pelicula" => [
-                    'id' => $generoPelicula->getPelicula()->getId(),
-                    'titulo' => $generoPelicula->getPelicula()->getTitulo()
-                ],
-                "genero" => [
-                    'id' => $generoPelicula->getGenero()->getId(),
-                    'nombre' => $generoPelicula->getGenero()->getNombre()
-                ]
+
+                // "id_compuesto" => $generoPelicula->getCompoundId(),
+                // "pelicula" => [
+                'idPelicula' => $generoPelicula->getPelicula()->getId(),
+                'titulo' => $generoPelicula->getPelicula()->getTitulo(),
+                'imagenRuta' => $fotoUrl
+                // ],
+                // "genero" => [
+                //     'id' => $generoPelicula->getGenero()->getId(),
+                //     'nombre' => $generoPelicula->getGenero()->getNombre()
+                // ]
             ];
         }
 

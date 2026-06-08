@@ -71,9 +71,16 @@ final class DirectorController extends AbstractController
         $director = new Director();
         $director->setNombre($data["nombre"]);
 
-        if (isset($data["nacimiento"])) {
-            $director->setNacimiento($data["nacimiento"]);
+        if (isset($data["nacimiento"]) && !empty($data["nacimiento"])) {
+            try {
+                // 🌟 Convertimos el string 'YYYY-MM-DD' de Angular en un objeto DateTime de PHP
+                $fecha = new \DateTime($data["nacimiento"]);
+                $director->setNacimiento($fecha);
+            } catch (\Exception $e) {
+                return $this->json("Formato de fecha no válido. Use YYYY-MM-DD", 400);
+            }
         }
+        
         $eni->persist($director);
         $eni->flush();
 

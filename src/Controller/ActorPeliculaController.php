@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 
-#[Route('/actor/pelicula', name: 'app_actor_pelicula')]
+#[Route('/actor-pelicula', name: 'app_actor_pelicula')]
 final class ActorPeliculaController extends AbstractController
 {
 
@@ -105,18 +105,26 @@ final class ActorPeliculaController extends AbstractController
         if (!$actorPeliculas) {
             return $this->json("No hay actorPelicula", 404);
         }
+
+        $baseUrl = 'http://127.0.0.1:8000/imagenes/pelicula/';
+
+
         $actorPeliculasJson = array();
         foreach ($actorPeliculas as $actorPelicula) {
+            $fotoUrl = $actorPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $actorPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
+
             $actorPeliculasJson[] = [
-                "id_compuesto" => $actorPelicula->getCompoundId(),
-                "pelicula" => [
-                    'id' => $actorPelicula->getPelicula()->getId(),
-                    'titulo' => $actorPelicula->getPelicula()->getTitulo()
-                ],
-                "actor" => [
-                    'id' => $actorPelicula->getActor()->getId(),
-                    'nombre' => $actorPelicula->getActor()->getNombre()
-                ]
+                
+                // "id_compuesto" => $generoPelicula->getCompoundId(),
+                // "pelicula" => [
+                'idPelicula' => $actorPelicula->getPelicula()->getId(),
+                'titulo' => $actorPelicula->getPelicula()->getTitulo(),
+                'imagenRuta' => $fotoUrl
+                // ],
+                // "genero" => [
+                //     'id' => $generoPelicula->getGenero()->getId(),
+                //     'nombre' => $generoPelicula->getGenero()->getNombre()
+                // ]
             ];
         }
 

@@ -155,6 +155,7 @@ final class UsuarioController extends AbstractController
             $hash = $usuario->getContrasena();
             $idUsuario = $usuario->getId();
             $tipoUsuario = $usuario->getTipo();
+            $nombreUsuario = $usuario->getNombre();
 
             if (password_verify($contrasena, $hash)) {
                 $valid = true;
@@ -165,7 +166,8 @@ final class UsuarioController extends AbstractController
             // Devolvemos tanto el ID como el tipo de rol (asumiendo que tienes un método getTipo())
             return $this->json([
                 'id' => $idUsuario,
-                'tipo' => $tipoUsuario // 1 = Normal, 2 = Admin
+                'tipo' => $tipoUsuario, // 1 = Normal, 2 = Admin
+                'nombre' => $nombreUsuario
             ], 200);
         } else {
             return $this->json("Error en el login", 404);

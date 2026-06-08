@@ -106,18 +106,26 @@ final class DirectorPeliculaController extends AbstractController
         if (!$directorPeliculas) {
             return $this->json("No hay directorPelicula", 404);
         }
+
+        $baseUrl = 'http://127.0.0.1:8000/imagenes/pelicula/';
+
+
         $directorPeliculasJson = array();
         foreach ($directorPeliculas as $directorPelicula) {
+            $fotoUrl = $directorPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $directorPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
+
             $directorPeliculasJson[] = [
-                "id_compuesto" => $directorPelicula->getCompoundId(),
-                "pelicula" => [
-                    'id' => $directorPelicula->getPelicula()->getId(),
-                    'titulo' => $directorPelicula->getPelicula()->getTitulo()
-                ],
-                "director" => [
-                    'id' => $directorPelicula->getDirector()->getId(),
-                    'nombre' => $directorPelicula->getDirector()->getNombre()
-                ]
+                
+                // "id_compuesto" => $generoPelicula->getCompoundId(),
+                // "pelicula" => [
+                'idPelicula' => $directorPelicula->getPelicula()->getId(),
+                'titulo' => $directorPelicula->getPelicula()->getTitulo(),
+                'imagenRuta' => $fotoUrl
+                // ],
+                // "genero" => [
+                //     'id' => $generoPelicula->getGenero()->getId(),
+                //     'nombre' => $generoPelicula->getGenero()->getNombre()
+                // ]
             ];
         }
 
