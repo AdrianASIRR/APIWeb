@@ -203,17 +203,22 @@ final class PeliculaController extends AbstractController
         if (isset($data["descripcion"])) {
             $pelicula->setDescripcion($data["descripcion"]);
         }
-        if (isset($data["fechaSalida"])) {
-            $pelicula->setFechaSalida($data["fechaSalida"]);
+
+        if (isset($data["fechaSalida"])  && !empty($data["fechaSalida"])) {
+            try {
+                // 🌟 Convertimos el string 'YYYY-MM-DD' de Angular en un objeto DateTime de PHP
+                $fecha = new \DateTime($data["fechaSalida"]);
+                $pelicula->setFechaSalida($fecha);
+            } catch (\Exception $e) {
+                return $this->json("Formato de fecha no válido. Use YYYY-MM-DD", 400);
+            }
         }
 
         if (isset($data["duracion"])) {
             $pelicula->setDuracion($data["duracion"]);
         }
 
-        if (isset($data["imagenRuta"])) {
-            $pelicula->setImagenRuta($data["imagenRuta"]);
-        }
+
 
         if (isset($data["trailerUrl"])) {
             $pelicula->setTrailerUrl($data["trailerUrl"]);
@@ -221,6 +226,48 @@ final class PeliculaController extends AbstractController
 
         $eni->persist($pelicula);
         $eni->flush();
+
+        if (isset($data["imagenRuta"]) && !empty($data["imagenRuta"])) {
+
+            // El string Base64 de Angular suele venir así: "data:image/jpeg;base64,/9j/4AAQSkZJR..."
+            // Necesitamos limpiar la cabecera "data:image/...;base64," para quedarnos solo con el contenido binario
+            $stringBase64 = $data["imagenRuta"];
+
+            if (str_contains($stringBase64, ',')) {
+                $stringBase64 = explode(',', $stringBase64)[1];
+            }
+
+            $stringBase64 = str_replace(' ', '+', $stringBase64);
+
+            // Decodificamos el string para obtener el archivo binario real
+            $archivoBinario = base64_decode($stringBase64);
+
+            if ($archivoBinario === false) {
+                return $this->json("Error: El string Base64 no es válido", 400);
+            }
+
+            // Definimos el nombre único del archivo y la ruta de la carpeta (ej: public/imagenes/pelicula/)
+            $nombreArchivo = $pelicula->getId() . ".jpg";
+
+            // Te recomiendo guardarlo dentro de la carpeta 'public' de Symfony para que sea accesible desde el navegador
+            $carpetaDestino = $this->getParameter('kernel.project_dir') . '/public/imagenes/pelicula/';
+
+            // Aseguramos que la carpeta exista, si no, la crea
+            if (!file_exists($carpetaDestino)) {
+                mkdir($carpetaDestino, 0777, true);
+            }
+
+            $rutaFinal = $carpetaDestino . $nombreArchivo;
+
+            // 3. Almacenamos la imagen físicamente en el servidor usando file_put_contents
+            if (file_put_contents($rutaFinal, $archivoBinario) !== false) {
+                // Actualizamos la entidad con el nombre de la imagen guardada y volvemos a hacer un flush
+                $pelicula->setImagenRuta($nombreArchivo);
+                $eni->flush();
+            } else {
+                return $this->json("Pelicula creada, pero hubo un error al guardar la imagen físicamente", 201);
+            }
+        }
 
         return $this->json("pelicula modificado", 200);
     }
