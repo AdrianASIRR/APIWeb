@@ -259,6 +259,11 @@ final class PeliculaController extends AbstractController
 
             $rutaFinal = $carpetaDestino . $nombreArchivo;
 
+            // Si la película ya tenía una imagen física guardada anteriormente, la eliminamos del servidor
+            if (file_exists($rutaFinal)) {
+                @unlink($rutaFinal); // Usamos el operador '@' para mitigar advertencias si el archivo está bloqueado temporalmente
+            }
+
             // 3. Almacenamos la imagen físicamente en el servidor usando file_put_contents
             if (file_put_contents($rutaFinal, $archivoBinario) !== false) {
                 // Actualizamos la entidad con el nombre de la imagen guardada y volvemos a hacer un flush
