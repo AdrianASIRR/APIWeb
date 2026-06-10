@@ -151,6 +151,7 @@ final class UsuarioController extends AbstractController
 
         $idUsuario = null;
         $tipoUsuario = null;
+        $nombreUsuario = null;
         foreach ($usuarios as $usuario) {
             $hash = $usuario->getContrasena();
             $idUsuario = $usuario->getId();

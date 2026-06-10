@@ -197,6 +197,9 @@ final class EstadoPeliculaController extends AbstractController
             }
         }
 
+        // if ($totalResenas === 0) {
+        //     return $this->json("No hay puntuaciones para esta película", 404);
+        // }
         $promedio = $totalResenas > 0 ? round($puntuacionTotal / $totalResenas, 2) : 0;
 
         return $this->json($promedio, 200);
@@ -293,6 +296,44 @@ final class EstadoPeliculaController extends AbstractController
                 'puntuacion' => $comentario->getPuntuacion(),
                 'comentario' => $comentario->getComentario(),
                 // 'borrado' => $comentario->isBorrado()
+            ];
+        }
+
+        return $this->json($comentariosJson, 200);
+    }
+
+    // Obtener 2 primeros comentarios de una película
+    //  GET 127.0.0.1:8000/estado-pelicula/pelicula/5/comentarios/2
+    #[Route('/pelicula/{peliculaId}/comentarios/{limite}', name: 'app_estado_pelicula_comentarios_limite', methods: ['GET'])]
+    public function getComentariosLimite(int $peliculaId, int $limite, EstadoPeliculaRepository $repository): Response
+    {
+        // Buscamos estados de película de la película dada que no estén borrados y tengan comentario
+        $comentarios = $repository->createQueryBuilder('e')
+            ->where('e.pelicula = :pelicula')
+            ->andWhere('e.borrado = false')
+            ->andWhere('e.comentario IS NOT NULL')
+            ->setParameter('pelicula', $peliculaId)
+            ->setMaxResults($limite)
+            ->getQuery()
+            ->getResult();
+
+        // Verificamos si existe y si no está marcado como borrado lógico
+        if (!$comentarios) {
+            return $this->json("No hay comentarios", 404);
+        }
+
+        $comentariosJson = array();
+        foreach ($comentarios as $comentario) {
+            $comentariosJson[] = [
+                // "id_compuesto" => $comentario->getCompoundId(),
+                // "pelicula_id" => [
+                //     'id' => $comentario->getPelicula()->getId(),
+                //     'titulo' => $comentario->getPelicula()->getTitulo()
+                // ],
+                "usuario" =>  $comentario->getUsuario()->getId(),
+                "nombre_usuario" => $comentario->getUsuario()->getNombre(),
+                'puntuacion' => $comentario->getPuntuacion(),
+                'comentario' => $comentario->getComentario(),
             ];
         }
 

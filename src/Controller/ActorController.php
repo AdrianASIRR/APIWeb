@@ -122,8 +122,18 @@ final class ActorController extends AbstractController
         if (isset($data["nombre"])) {
             $actor->setNombre($data["nombre"]);
         }
-        if (isset($data["nacimiento"])) {
-            $actor->setNacimiento($data["nacimiento"]);
+        
+        if (isset($data["nacimiento"]) && !empty($data["nacimiento"])) {
+            try {
+                // 🌟 Convertimos el string 'YYYY-MM-DD' de Angular en un objeto DateTime de PHP
+                $fecha = new \DateTime($data["nacimiento"]);
+                $actor->setNacimiento($fecha);
+            } catch (\Exception $e) {
+                return $this->json("Formato de fecha no válido. Use YYYY-MM-DD", 400);
+            }
+        }
+        else{
+            $actor->setNacimiento(null);
         }
 
         $eni->persist($actor);
