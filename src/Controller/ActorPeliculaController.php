@@ -96,7 +96,7 @@ final class ActorPeliculaController extends AbstractController
     //  Buscar por id actor
     //  GET 127.0.0.1:8000/actor-pelicula/actor/5 
     #[Route('/actor/{actorId}', name: 'app_actor_pelicula_actor', methods: ['GET'])]
-    public function getEstadosActor(int $actorId, ActorPeliculaRepository $repository): Response
+    public function getPeliculasActor(int $actorId, ActorPeliculaRepository $repository): Response
     {
         // Buscamos empleando la clave compuesta como un array asociativo
         $actorPeliculas = $repository->findBy(['actor' => $actorId]);
@@ -114,7 +114,7 @@ final class ActorPeliculaController extends AbstractController
             $fotoUrl = $actorPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $actorPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
 
             $actorPeliculasJson[] = [
-                
+
                 // "id_compuesto" => $generoPelicula->getCompoundId(),
                 // "pelicula" => [
                 'idPelicula' => $actorPelicula->getPelicula()->getId(),
@@ -134,7 +134,7 @@ final class ActorPeliculaController extends AbstractController
     //  Buscar por id pelicula 
     //  GET 127.0.0.1:8000/actor-pelicula/pelicula/5
     #[Route('/pelicula/{peliculaId}', name: 'app_actor_pelicula_peli', methods: ['GET'])]
-    public function getEstadosPelicula(int $peliculaId, ActorPeliculaRepository $repository): Response
+    public function getActoresPelicula(int $peliculaId, ActorPeliculaRepository $repository): Response
     {
         // Buscamos empleando la clave compuesta como un array asociativo
         $actorPeliculas = $repository->findBy(['pelicula' => $peliculaId]);
@@ -160,5 +160,59 @@ final class ActorPeliculaController extends AbstractController
         }
 
         return $this->json($actorPeliculasJson, 200);
+    }
+
+
+    //  Obtener relaciones
+    //  GET 127.0.0.1:8000/actor-pelicula/
+    #[Route('/', name: 'app_actor_pelicula_list', methods: ['GET'])]
+    public function list(EntityManagerInterface $eni): Response
+    {
+        // Buscamos por orden de pelicula
+        $actoresPelicula = $eni->getRepository(ActorPelicula::class)
+            ->findBy([], ['pelicula' => 'ASC']);
+
+        // Verificamos si existe
+        if (!$actoresPelicula) {
+            return $this->json("No hay actorPelicula", 404);
+        }
+
+        $actoresPeliculaJson = array();
+        //Devolverá  un solo elemento
+        foreach ($actoresPelicula as $actorPelicula) {
+            $actoresPeliculaJson[] = [
+                // "id_compuesto" => $actorPelicula->getCompoundId(),
+                // "pelicula" => [
+                'id1' => $actorPelicula->getPelicula()->getId(),
+                'peliculatitulo' => $actorPelicula->getPelicula()->getTitulo(),
+                // ],
+                // "actor" => [
+                'id2' => $actorPelicula->getActor()->getId(),
+                'actornombre' => $actorPelicula->getActor()->getNombre()
+                // ]
+            ];
+        }
+
+
+        return $this->json($actoresPeliculaJson, 200);
+    }
+
+
+    // Borrar actor película
+    //Borrar actor por id
+    //POST 127.0.0.1:8000/actor-pelicula/2/1
+    #[Route('/{peliculaId}/{actorId}', name: 'app_actor_pelicula_borrar', methods: ['POST'])]
+    public function borrar(int $peliculaId, int $actorId, EntityManagerInterface $eni): Response
+    {
+
+        $actoresPelicula = $eni->getRepository(ActorPelicula::class)->find(['pelicula' => $peliculaId, 'actor' => $actorId]);
+
+        if (empty($actoresPelicula)) {
+            return $this->json("No existe esta actor", 404);
+        }
+        //Devolverá  un solo elemento
+        $eni->remove($actoresPelicula);
+        $eni->flush();
+        return $this->json("Actor borrado", 200);
     }
 }

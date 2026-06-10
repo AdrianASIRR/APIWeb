@@ -115,7 +115,7 @@ final class DirectorPeliculaController extends AbstractController
             $fotoUrl = $directorPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $directorPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
 
             $directorPeliculasJson[] = [
-                
+
                 // "id_compuesto" => $generoPelicula->getCompoundId(),
                 // "pelicula" => [
                 'idPelicula' => $directorPelicula->getPelicula()->getId(),
@@ -161,5 +161,58 @@ final class DirectorPeliculaController extends AbstractController
         }
 
         return $this->json($directorPeliculasJson, 200);
+    }
+
+    //  Obtener relaciones
+    //  GET 127.0.0.1:8000/director-pelicula/
+    #[Route('/', name: 'app_director_pelicula_list', methods: ['GET'])]
+    public function list(EntityManagerInterface $eni): Response
+    {
+        // Buscamos por orden de pelicula
+        $directoresPelicula = $eni->getRepository(DirectorPelicula::class)
+            ->findBy([], ['pelicula' => 'ASC']);
+
+        // Verificamos si existe
+        if (!$directoresPelicula) {
+            return $this->json("No hay actorPelicula", 404);
+        }
+
+        $directoresPeliculaJson = array();
+        //Devolverá  un solo elemento
+        foreach ($directoresPelicula as $directorPelicula) {
+            $directoresPeliculaJson[] = [
+                // "id_compuesto" => $actorPelicula->getCompoundId(),
+                // "pelicula" => [
+                'id1' => $directorPelicula->getPelicula()->getId(),
+                'peliculatitulo' => $directorPelicula->getPelicula()->getTitulo(),
+                // ],
+                // "actor" => [
+                'id2' => $directorPelicula->getDirector()->getId(),
+                'directornombre' => $directorPelicula->getDirector()->getNombre()
+                // ]
+            ];
+        }
+
+
+        return $this->json($directoresPeliculaJson, 200);
+    }
+
+
+    // Borrar actor película
+    //Borrar actor por id
+    //POST 127.0.0.1:8000/actor-pelicula/2/1
+    #[Route('/{peliculaId}/{directorId}', name: 'app_director_pelicula_borrar', methods: ['POST'])]
+    public function borrar(int $peliculaId, int $actorId, EntityManagerInterface $eni): Response
+    {
+
+        $directorPelicula = $eni->getRepository(DirectorPelicula::class)->find(['pelicula' => $peliculaId, 'director' => $actorId]);
+
+        if (empty($directorPelicula)) {
+            return $this->json("No existe esta actor", 404);
+        }
+        //Devolverá  un solo elemento
+        $eni->remove($directorPelicula);
+        $eni->flush();
+        return $this->json("Actor borrado", 200);
     }
 }

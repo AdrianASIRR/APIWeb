@@ -159,4 +159,56 @@ final class GeneroPeliculaController extends AbstractController
 
         return $this->json($generoPeliculasJson, 200);
     }
+
+    //  Obtener relaciones
+    //  GET 127.0.0.1:8000/genero-pelicula/
+    #[Route('/', name: 'app_genero_pelicula_list', methods: ['GET'])]
+    public function list(EntityManagerInterface $eni): Response
+    {
+        // Buscamos por orden de pelicula
+        $generosPelicula = $eni->getRepository(GeneroPelicula::class)
+            ->findBy([], ['pelicula' => 'ASC']);
+
+        // Verificamos si existe
+        if (!$generosPelicula) {
+            return $this->json("No hay actorPelicula", 404);
+        }
+
+        $generosPeliculaJson = array();
+        //Devolverá  un solo elemento
+        foreach ($generosPelicula as $generoPelicula) {
+            $generosPeliculaJson[] = [
+                // "id_compuesto" => $actorPelicula->getCompoundId(),
+                // "pelicula" => [
+                'id1' => $generoPelicula->getPelicula()->getId(),
+                'peliculatitulo' => $generoPelicula->getPelicula()->getTitulo(),
+                // ],
+                // "actor" => [
+                'id2' => $generoPelicula->getGenero()->getId(),
+                'generonombre' => $generoPelicula->getGenero()->getNombre()
+                // ]
+            ];
+        }
+
+        return $this->json($generosPeliculaJson, 200);
+    }
+
+
+    // Borrar genero película
+    //Borrar genero por id
+    //POST 127.0.0.1:8000/genero-pelicula/2/1
+    #[Route('/{peliculaId}/{generoId}', name: 'app_genero_pelicula_borrar', methods: ['POST'])]
+    public function borrar(int $peliculaId, int $generoId, EntityManagerInterface $eni): Response
+    {
+
+        $generosPelicula = $eni->getRepository(GeneroPelicula::class)->find(['pelicula' => $peliculaId, 'genero' => $generoId]);
+
+        if (empty($generosPelicula)) {
+            return $this->json("No existe este genero", 404);
+        }
+        //Devolverá  un solo elemento
+        $eni->remove($generosPelicula);
+        $eni->flush();
+        return $this->json("Genero borrado", 200);
+    }
 }
