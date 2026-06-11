@@ -277,7 +277,7 @@ final class EstadoPeliculaController extends AbstractController
         $comentarios = $repository->createQueryBuilder('e')
             ->where('e.pelicula = :pelicula')
             ->andWhere('e.borrado = false')
-            ->andWhere('e.comentario IS NOT NULL')
+            ->andWhere('e.comentario IS NOT NULL AND e.comentario!=\'')
             ->setParameter('pelicula', $peliculaId)
             ->getQuery()
             ->getResult();
@@ -319,7 +319,7 @@ final class EstadoPeliculaController extends AbstractController
         $comentarios = $repository->createQueryBuilder('e')
             ->where('e.pelicula = :pelicula')
             ->andWhere('e.borrado = false')
-            ->andWhere('e.comentario IS NOT NULL')
+            ->andWhere('e.comentario IS NOT NULL AND e.comentario!=\'')
             ->setParameter('pelicula', $peliculaId)
             ->setMaxResults($limite)
             ->getQuery()
@@ -368,5 +368,4 @@ final class EstadoPeliculaController extends AbstractController
 
         return $this->json("EstadoPelicula modificado", 200);
     }
-
 }
