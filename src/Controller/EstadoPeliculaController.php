@@ -116,13 +116,21 @@ final class EstadoPeliculaController extends AbstractController
         if (!$estadoPeliculas) {
             return $this->json("No hay estadoPelicula", 404);
         }
+
+        $baseUrl = 'http://127.0.0.1:8000/imagenes/pelicula/';
+
+
+
         $estadoPeliculasJson = array();
         foreach ($estadoPeliculas as $estadoPelicula) {
+            $fotoUrl = $estadoPelicula->getPelicula()->getImagenRuta() ? $baseUrl . $estadoPelicula->getPelicula()->getImagenRuta() : $baseUrl . "placeholder.jpg";
+
             $estadoPeliculasJson[] = [
                 "id_compuesto" => $estadoPelicula->getCompoundId(),
                 "pelicula_id" => [
                     'id' => $estadoPelicula->getPelicula()->getId(),
-                    'titulo' => $estadoPelicula->getPelicula()->getTitulo()
+                    'titulo' => $estadoPelicula->getPelicula()->getTitulo(),
+                    'imagenRuta' => $fotoUrl
                 ],
                 "usuario" =>  $estadoPelicula->getUsuario()->getId(),
                 "estado" => [
@@ -340,214 +348,25 @@ final class EstadoPeliculaController extends AbstractController
         return $this->json($comentariosJson, 200);
     }
 
-    //GET 127.0.0.1:8000/estado/pelicula
-    /*     #[Route('/', name: 'app_estado_pelicula_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $eni): Response
+    //Borrado Lógico
+    //  PUT 127.0.0.1:8000/estado-pelicula/blogico/4/12 (Pelicula 4, Usuario 12)
+    #[Route('/blogico/{peliculaId}/{usuarioId}', name: 'app_estado_pelicula_blogico', methods: ['PUT'])]
+    public function borradoLogico(int $peliculaId, int $usuarioId, EntityManagerInterface $emi, Request $request,): Response
     {
-        $estadoPeliculas = $eni->getRepository(EstadoPelicula::class)->findAll();
-        if (empty($estadoPeliculas)) {
-            return $this->json("No hay estados de peliculas", 404);
-        }
-        $estadosPeliculasJson = array();
-        foreach ($estadoPeliculas as $estadoPelicula) {
-            $estadosPeliculasJson[] = [
-                "pelicula" => $estadoPelicula->getPelicula(),
-                "usuario" => $estadoPelicula->getUsuario(),
-                "estado" => $estadoPelicula->getEstado(),
-                "puntuacion" => $estadoPelicula->getPuntuacion(),
-                "comentario" => $estadoPelicula->getComentario(),
-                "borrado" => $estadoPelicula->isBorrado(),
-            ];
-        }
-        return $this->json($estadosPeliculasJson, 200);
-    }
+        $estadoPelicula = $emi->getRepository(EstadoPelicula::class)->find(['pelicula' => $peliculaId, 'usuario' => $usuarioId]);
 
-    //Buscar estado de pelicula
-    //GET 127.0.0.1:8000/estado/pelicula/3
-    #[Route('/{idEstado}/{idPelicula}', name: 'app_estado_pelicula_id', methods: ['GET'])]
-    public function estadoPeliculaIdComp(int $idEstado, int $idPelicula, EntityManagerInterface $eni): Response
-    {
-        $estadoPeliculas = $eni->getRepository(EstadoPelicula::class)->find([$idEstado, $idPelicula]);
-
-        if (empty($estadoPeliculas)) {
-            return $this->json("No hay estados de peliculas", 404);
-        }
-        //Devolverá  un solo elemento
-        $estadosPeliculasJson = [
-            "pelicula" => $estadoPeliculas->getPelicula(),
-            "usuario" => $estadoPeliculas->getUsuario(),
-            "estado" => $estadoPeliculas->getEstado(),
-            "puntuacion" => $estadoPeliculas->getPuntuacion(),
-            "comentario" => $estadoPeliculas->getComentario(),
-            "borrado" => $estadoPeliculas->isBorrado(),
-        ];
-
-        return $this->json($estadosPeliculasJson, 200);
-    }
-
-    //Buscar estado de pelicula por id de pelicula
-    //GET 127.0.0.1:8000/estado/pelicula/peli/3
-    #[Route('/peli/{id}', name: 'app_estado_pelicula_id_pelicula', methods: ['GET'])]
-    public function peliculaId(int $id, EntityManagerInterface $eni): Response
-    {
-        $estadoPeliculas = $eni->getRepository(EstadoPelicula::class)->find($id);
-
-        if (empty($estadoPeliculas)) {
-            return $this->json("No hay estados de peliculas", 404);
-        }
-        $estadosPeliculasJson = array();
-        foreach ($estadoPeliculas as $estadoPelicula) {
-            $estadosPeliculasJson[] = [
-                "pelicula" => $estadoPelicula->getPelicula(),
-                "usuario" => $estadoPelicula->getUsuario(),
-                "estado" => $estadoPelicula->getEstado(),
-                "puntuacion" => $estadoPelicula->getPuntuacion(),
-                "comentario" => $estadoPelicula->getComentario(),
-                "borrado" => $estadoPelicula->isBorrado(),
-            ];
-        }
-        
-        return $this->json($estadosPeliculasJson, 200);
-    }
-
-    //Buscar estado de pelicula por id de pelicula
-    //GET 127.0.0.1:8000/estado/pelicula/3
-    #[Route('/{id}', name: 'app_estado_pelicula_id_usuario', methods: ['GET'])]
-    public function peliculaId(int $id, EntityManagerInterface $eni): Response
-    {
-        $estadoPeliculas = $eni->getRepository(EstadoPelicula::class)->find($id);
-
-        if (empty($estadoPeliculas)) {
-            return $this->json("No hay estados de peliculas", 404);
-        }
-        $estadosPeliculasJson = array();
-        foreach ($estadoPeliculas as $estadoPelicula) {
-            $estadosPeliculasJson[] = [
-                "pelicula" => $estadoPelicula->getPelicula(),
-                "usuario" => $estadoPelicula->getUsuario(),
-                "estado" => $estadoPelicula->getEstado(),
-                "puntuacion" => $estadoPelicula->getPuntuacion(),
-                "comentario" => $estadoPelicula->getComentario(),
-                "borrado" => $estadoPelicula->isBorrado(),
-            ];
-        }
-
-        return $this->json($estadosPeliculasJson, 200);
-    }
-
-
-    //Crear pelicula
-    //POST 127.0.0.1:8000/estado/pelicula/
-    #[Route('/', name: 'app_estado_pelicula_crear', methods: ['POST'])]
-    public function crear(request $request, EntityManagerInterface $eni): Response
-    {
-        $body = $request->getContent();
-        $data = json_decode($body, true);
-
-        if (!$data) {
-            return $this->json("Error JSON no valido", 404);
-        }
-        if (!isset($data["pelicula"])) {
-            return $this->json("No hay pelicula", 400);
-        }
-
-        if (!isset($data["usuario"])) {
-            return $this->json("No hay usuario", 400);
-        }
-        $estadoPelicula = new EstadoPelicula();
-        $estadoPelicula->setPelicula($data["pelicula"]);
-        $estadoPelicula->setUsuario($data["usuario"]);
-
-        if (isset($data["estado"])) {
-            $estadoPelicula->setEstado($data["estado"]);
-        }
-        if (isset($data["puntuacion"])) {
-            $estadoPelicula->setPuntuacion($data["puntuacion"]);
-        }
-        if (isset($data["comentario"])) {
-            $estadoPelicula->setComentario($data["comentario"]);
-        }
-
-        $eni->persist($estadoPelicula);
-        $eni->flush();
-
-        return $this->json("Estado de pelicula creado", 201);
-    }
-
-    //Borrar estado de pelicula por id
-    //POST 127.0.0.1:8000/estado/pelicula/6
-    #[Route('/{id}', name: 'app_estado_pelicula_borrar', methods: ['POST'])]
-    public function borrar(int $id, EntityManagerInterface $eni): Response
-    {
-
-        $estadoPeliculas = $eni->getRepository(EstadoPelicula::class)->find($id);
-
-        if (empty($estadoPeliculas)) {
-            return $this->json("No existe este estado de pelicula", 404);
-        }
-        //Devolverá  un solo elemento
-        $eni->remove($estadoPeliculas);
-        $eni->flush();
-        return $this->json("Estado de pelicula borrado", 200);
-    }
-
-
-    //modificar estado de pelicula
-    //PUT 127.0.0.1:8000/estado/pelicula/6
-    #[Route('/{id}', name: 'app_estado_pelicula_modificar', methods: ['PUT'])]
-    public function modificar(int $id, EntityManagerInterface $eni, Request $request): Response
-    {
-
-        $estadoPelicula = $eni->getRepository(EstadoPelicula::class)->find($id);
-
-        if (empty($estadoPelicula)) {
-            return $this->json("No existe este estado de pelicula", 404);
+        if (!$estadoPelicula) {
+            return $this->json("No hay estadoPelicula", 404);
         }
 
         $data = json_decode($request->getContent(), true);
-
-
-        if (isset($data["pelicula"])) {
-            $estadoPelicula->setPelicula($data["pelicula"]);
-        }
-        if (isset($data["usuario"])) {
-            $estadoPelicula->setUsuario($data["usuario"]);
-        }
-        if (isset($data["estado"])) {
-            $estadoPelicula->setEstado($data["estado"]);
-        }
-        if (isset($data["puntuacion"])) {
-            $estadoPelicula->setPuntuacion($data["puntuacion"]);
-        }
-        if (isset($data["comentario"])) {
-            $estadoPelicula->setComentario($data["comentario"]);
-        }
-
-        $eni->persist($estadoPelicula);
-        $eni->flush();
-
-        return $this->json("Estado de pelicula modificado", 200);
-    }
-
-    //Borrado lógico pelicula
-    //PUT 127.0.0.1:8000/estado/pelicula/blogico/4
-    #[Route('/blogico/{id}', name: 'app_estado_pelicula_borrado_logico', methods: ['PUT'])]
-    public function borradoLogico(int $id, EntityManagerInterface $eni, Request $request): Response
-    {
-
-        $estadoPelicula = $eni->getRepository(EstadoPelicula::class)->find($id);
-
-        if (empty($estadoPelicula)) {
-            return $this->json("No existe este estado de pelicula", 404);
-        }
-
-        $data = json_decode($request->getContent(), true);
-
         $estadoPelicula->setBorrado(1);
 
-        $eni->persist($estadoPelicula);
-        $eni->flush();
 
-        return $this->json("Estado de pelicula borrado lógicamente", 200);
-    } */
+        $emi->persist($estadoPelicula);
+        $emi->flush();
+
+        return $this->json("EstadoPelicula modificado", 200);
+    }
+
 }
