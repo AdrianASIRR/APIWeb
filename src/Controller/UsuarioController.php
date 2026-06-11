@@ -223,4 +223,37 @@ final class UsuarioController extends AbstractController
 
         return $this->json("Usuario borrado lógicamente", 200);
     }
+
+    //Modificar contraseña
+    //PUT 127.0.0.1:8000/usuario/pass/1
+    #[Route('/pass/{id}', name: 'app_usuario_modificar_pass', methods: ['PUT'])]
+    public function modificarContrasena(int $id, EntityManagerInterface $eni, Request $request): Response
+    {
+
+        $usuario = $eni->getRepository(Usuario::class)->find($id);
+
+        if (empty($usuario)) {
+            return $this->json("No existe este usuario", 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data["passwordActual"]) || !isset($data["passwordNueva"])) {
+            return $this->json(["error" => "Faltan datos obligatorios (passwordActual o passwordNueva)"], 400);
+        }
+
+        $hash = $usuario->getContrasena();
+
+        if (password_verify($$data["passwordActual"], $hash)) {
+            $usuario->setContrasena(password_hash($data["passwordNueva"], PASSWORD_DEFAULT));
+        } else {
+            return $this->json(["error" => "La contraseña actual no es correcta"], 401);
+        }
+
+
+        $eni->persist($usuario);
+        $eni->flush();
+
+        return $this->json("Usuario modificado", 200);
+    }
 }
