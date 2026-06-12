@@ -16,7 +16,9 @@ final class ActorController extends AbstractController
     #[Route('/', name: 'app_actor_list', methods: ['GET'])]
     public function list(EntityManagerInterface $eni): Response
     {
-        $actores = $eni->getRepository(Actor::class)->findAll();
+        // $actores = $eni->getRepository(Actor::class)->findAll();
+        $actores = $eni->getRepository(Actor::class)->findBy(['borrado' => false]);
+
         if (empty($actores)) {
             return $this->json("No hay actores", 404);
         }
@@ -122,7 +124,7 @@ final class ActorController extends AbstractController
         if (isset($data["nombre"])) {
             $actor->setNombre($data["nombre"]);
         }
-        
+
         if (isset($data["nacimiento"]) && !empty($data["nacimiento"])) {
             try {
                 // 🌟 Convertimos el string 'YYYY-MM-DD' de Angular en un objeto DateTime de PHP
@@ -131,8 +133,7 @@ final class ActorController extends AbstractController
             } catch (\Exception $e) {
                 return $this->json("Formato de fecha no válido. Use YYYY-MM-DD", 400);
             }
-        }
-        else{
+        } else {
             $actor->setNacimiento(null);
         }
 

@@ -136,8 +136,14 @@ final class ActorPeliculaController extends AbstractController
     #[Route('/pelicula/{peliculaId}', name: 'app_actor_pelicula_peli', methods: ['GET'])]
     public function getActoresPelicula(int $peliculaId, ActorPeliculaRepository $repository): Response
     {
-        // Buscamos empleando la clave compuesta como un array asociativo
-        $actorPeliculas = $repository->findBy(['pelicula' => $peliculaId]);
+        $actorPeliculas = $repository->createQueryBuilder('ap')
+            ->join('ap.actor', 'a') // Forzamos el enlace con la entidad Actor
+            ->where('ap.pelicula = :peliculaId')
+            ->andWhere('a.borrado = :borradoFalso') // Filtramos directamente en el JOIN del actor
+            ->setParameter('peliculaId', $peliculaId)
+            ->setParameter('borradoFalso', false)
+            ->getQuery()
+            ->getResult();
 
         // Verificamos si existe y si no está marcado como borrado lógico
         if (!$actorPeliculas) {
@@ -146,6 +152,7 @@ final class ActorPeliculaController extends AbstractController
 
         $actorPeliculasJson = array();
         foreach ($actorPeliculas as $actorPelicula) {
+           
             $actorPeliculasJson[] = [
                 "id_compuesto" => $actorPelicula->getCompoundId(),
                 "pelicula" => [

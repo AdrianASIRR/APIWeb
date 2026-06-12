@@ -16,7 +16,9 @@ final class GeneroController extends AbstractController
     #[Route('/', name: 'app_genero_list', methods: ['GET'])]
     public function list(EntityManagerInterface $eni): Response
     {
-        $generos = $eni->getRepository(Genero::class)->findAll();
+        // $generos = $eni->getRepository(Genero::class)->findAll();
+        $generos = $eni->getRepository(Genero::class)->findBy(['borrado' => false]);
+
         if (empty($generos)) {
             return $this->json("No hay genero", 404);
         }
@@ -84,7 +86,7 @@ final class GeneroController extends AbstractController
         if (isset($data["nombre"])) {
             $genero->setNombre($data["nombre"]);
         }
-        
+
         $eni->persist($genero);
         $eni->flush();
 
@@ -112,5 +114,4 @@ final class GeneroController extends AbstractController
 
         return $this->json("Genero borrado lógicamente", 200);
     }
-   
 }

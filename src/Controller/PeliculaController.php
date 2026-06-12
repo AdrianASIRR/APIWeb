@@ -17,7 +17,8 @@ final class PeliculaController extends AbstractController
     #[Route('/', name: 'app_pelicula_list', methods: ['GET'])]
     public function list(EntityManagerInterface $eni): Response
     {
-        $peliculas = $eni->getRepository(Pelicula::class)->findAll();
+        // $peliculas = $eni->getRepository(Pelicula::class)->findAll();
+        $peliculas = $eni->getRepository(Pelicula::class)->findBy(['borrado' => false]);
         if (empty($peliculas)) {
             return $this->json("No hay peliculas", 404);
         }

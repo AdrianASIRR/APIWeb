@@ -17,7 +17,9 @@ final class DirectorController extends AbstractController
     #[Route('/', name: 'app_director_list', methods: ['GET'])]
     public function list(EntityManagerInterface $eni): Response
     {
-        $directores = $eni->getRepository(Director::class)->findAll();
+        // $directores = $eni->getRepository(Director::class)->findAll();
+        $directores = $eni->getRepository(Director::class)->findBy(['borrado' => false]);
+
         if (empty($directores)) {
             return $this->json("No hay directores", 404);
         }

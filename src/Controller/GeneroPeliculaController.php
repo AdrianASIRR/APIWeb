@@ -135,7 +135,15 @@ final class GeneroPeliculaController extends AbstractController
     public function getEstadosPelicula(int $peliculaId, GeneroPeliculaRepository $repository): Response
     {
         // Buscamos empleando la clave compuesta como un array asociativo
-        $generoPeliculas = $repository->findBy(['pelicula' => $peliculaId]);
+        // $generoPeliculas = $repository->findBy(['pelicula' => $peliculaId]);
+         $generoPeliculas = $repository->createQueryBuilder('ap')
+            ->join('ap.genero', 'g') // Forzamos el enlace con la entidad Actor
+            ->where('ap.pelicula = :peliculaId')
+            ->andWhere('g.borrado = :borradoFalso') // Filtramos directamente en el JOIN del actor
+            ->setParameter('peliculaId', $peliculaId)
+            ->setParameter('borradoFalso', false)
+            ->getQuery()
+            ->getResult();
 
         // Verificamos si existe y si no está marcado como borrado lógico
         if (!$generoPeliculas) {
