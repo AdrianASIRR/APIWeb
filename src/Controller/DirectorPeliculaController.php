@@ -199,7 +199,6 @@ final class DirectorPeliculaController extends AbstractController
 
 
     // Borrar actor película
-    //Borrar actor por id
     //POST 127.0.0.1:8000/actor-pelicula/2/1
     #[Route('/{peliculaId}/{directorId}', name: 'app_director_pelicula_borrar', methods: ['POST'])]
     public function borrar(int $peliculaId, int $actorId, EntityManagerInterface $eni): Response

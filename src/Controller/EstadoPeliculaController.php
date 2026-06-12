@@ -368,4 +368,21 @@ final class EstadoPeliculaController extends AbstractController
 
         return $this->json("EstadoPelicula modificado", 200);
     }
+
+    // Borrado Permanente
+     //POST 127.0.0.1:8000/estado-pelicula/2/1
+    #[Route('/{peliculaId}/{usuarioId}', name: 'app_estado_pelicula_borrar', methods: ['POST'])]
+    public function borrar(int $peliculaId, int $usuarioId, EntityManagerInterface $eni): Response
+    {
+
+        $estadoPelicula = $eni->getRepository(EstadoPelicula::class)->find(['pelicula' => $peliculaId, 'usuario' => $usuarioId]);
+
+        if (empty($estadoPelicula)) {
+            return $this->json("No existe este estado película", 404);
+        }
+        //Devolverá  un solo elemento
+        $eni->remove($estadoPelicula);
+        $eni->flush();
+        return $this->json("Estado película borrado", 200);
+    }
 }
